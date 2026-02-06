@@ -220,11 +220,11 @@
     }
 
     .phase-bg.eval {
-      background: rgba(126, 34, 206, 0.35);
+      background: rgba(126, 34, 206, 0.9);
     }
 
     .phase-bg.resolution {
-      background: #10b981;
+      background: rgba(16, 185, 129, 0.9);
     }
 
     .filter-buttons {
@@ -235,16 +235,17 @@
     }
 
     .filter-btn {
-      padding: 6px 12px;
-      border-radius: 8px;
+      padding: 4px 10px;
+      border-radius: 6px;
       border: 2px solid #e2e8f0;
       background: white;
-      font-size: 15px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       color: #475569;
       width: 100%;
+      text-align: center;
     }
 
     .filter-btn:hover {
@@ -269,12 +270,13 @@
       background: #dce4f0;
       border: 2px solid #a5b4fc;
       border-radius: 12px;
-      padding: 16px;
-      text-align: center;
+      padding: 12px 16px;
       transition: all 0.3s ease;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      height: 64px;
     }
 
     .stat-box:hover {
@@ -285,13 +287,23 @@
     .stat-number {
       font-size: 36px;
       font-weight: 800;
-      margin-bottom: 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
     }
 
     .stat-label {
-      font-size: 15px;
+      font-size: 13px;
       color: #475569;
       font-weight: 600;
+      text-align: left;
+      line-height: 1.2;
     }
 
     .legend-item {
@@ -340,44 +352,38 @@
    <header class="sticky top-0 z-30 bg-white border-b-2 border-slate-200 px-6 py-6 shadow-sm">
     <div class="max-w-full">
      <div class="flex items-start gap-6 mb-4">
-      <div style="width: 280px; height: 128px; flex-shrink: 0;">
-       <img src="https://www.aei.gob.es/sites/default/files/inline-files/logo%20AEI.svg" 
-            alt="Logo AEI" 
-            class="h-full w-full object-contain">
-      </div>
-      <div class="flex flex-col justify-center" style="height: 128px;">
-       <h1 id="main-title" class="text-2xl font-bold text-black" style="font-family: 'Arial', sans-serif; letter-spacing: -0.02em;">Calendario previsto de las convocatorias de la Agencia Estatal de Investigación</h1>
-       <p id="subtitle" class="text-lg text-slate-700 mt-2 font-semibold">Visor 2026 - 2027</p>
+      <div class="flex flex-col justify-center" style="height: 64px;">
+       <h1 id="main-title" class="text-4xl font-bold text-black" style="font-family: 'Arial', sans-serif; letter-spacing: -0.02em;">Calendario previsto de las convocatorias de la Agencia Estatal de Investigación</h1>
       </div>
      </div>
      <div class="stats-grid">
       <div class="stat-box">
-       <div>
-        <div class="stat-number text-blue-500" id="total-count">29</div>
+       <div class="stat-number text-blue-500" id="total-count">29</div>
+       <div class="stat-content">
         <div class="stat-label">Todas las convocatorias</div>
+        <button class="filter-btn active" data-filter="all">Ver todas</button>
        </div>
-       <button class="filter-btn active" data-filter="all">Ver todas</button>
       </div>
       <div class="stat-box">
-       <div>
-        <div class="stat-number text-blue-500" id="projects-count">9</div>
+       <div class="stat-number text-blue-500" id="projects-count">8</div>
+       <div class="stat-content">
         <div class="stat-label">Proyectos</div>
+        <button class="filter-btn" data-filter="research">Ver filtro</button>
        </div>
-       <button class="filter-btn" data-filter="research">Ver filtro</button>
       </div>
       <div class="stat-box">
-       <div>
-        <div class="stat-number text-blue-500" id="human-count">9</div>
+       <div class="stat-number text-blue-500" id="human-count">11</div>
+       <div class="stat-content">
         <div class="stat-label">Recursos Humanos</div>
+        <button class="filter-btn" data-filter="human">Ver filtro</button>
        </div>
-       <button class="filter-btn" data-filter="human">Ver filtro</button>
       </div>
       <div class="stat-box">
-       <div>
-        <div class="stat-number text-blue-500" id="coord-count">7</div>
-        <div class="stat-label">Fortalecimiento y Coordinación</div>
+       <div class="stat-number text-blue-500" id="coord-count">7</div>
+       <div class="stat-content">
+        <div class="stat-label">Fortalecimiento y Coord.</div>
+        <button class="filter-btn" data-filter="coordination">Ver filtro</button>
        </div>
-       <button class="filter-btn" data-filter="coordination">Ver filtro</button>
       </div>
      </div>
     </div>
@@ -414,7 +420,7 @@
 
     const convocatorias = [
       { acronimo: 'ATR2025', nombre: 'Programa ATRAE', solicitud: { start: '2025-04', end: '2025-04' }, prp: { start: '2026-01', end: '2026-01' }, concesion: { start: '2026-03', end: '2026-03' }, categoria: 'human' },
-      { acronimo: 'CR3-2025', nombre: 'Certificado R3', solicitud: { start: '2025-05', end: '2025-05' }, prp: { start: '2026-02', end: '2026-02' }, concesion: { start: '2026-03', end: '2026-03' }, categoria: 'coordination' },
+      { acronimo: 'CR32025', nombre: 'Certificado R3', solicitud: { start: '2025-05', end: '2025-05' }, prp: { start: '2026-02', end: '2026-02' }, concesion: { start: '2026-03', end: '2026-03' }, categoria: 'human' },
       { acronimo: 'CEX2025', nombre: 'Severo Ochoa/Maeztu', solicitud: { start: '2025-05', end: '2025-05' }, prp: { start: '2026-03', end: '2026-03' }, concesion: { start: '2026-06', end: '2026-06' }, categoria: 'coordination' },
       { acronimo: 'PDC2025', nombre: 'Prueba de Concepto', solicitud: { start: '2025-06', end: '2025-06' }, prp: { start: '2025-12', end: '2025-12' }, concesion: { start: '2026-02', end: '2026-02' }, categoria: 'research' },
       { acronimo: 'CNS2025', nombre: 'Consolidación Invest.', solicitud: { start: '2025-06', end: '2025-06' }, prp: { start: '2026-02', end: '2026-02' }, concesion: { start: '2026-04', end: '2026-04' }, categoria: 'human' },
@@ -430,9 +436,9 @@
       { acronimo: 'PCI2026-1', nombre: 'Colaboración Inter. 1', solicitud: { start: '2026-04-08', end: '2026-04-22' }, prp: { start: '2026-06', end: '2026-06' }, concesion: { start: '2026-07', end: '2026-07' }, categoria: 'research' },
       { acronimo: 'ATR2026', nombre: 'Programa ATRAE', solicitud: { start: '2026-04-23', end: '2026-06-04' }, prp: { start: '2026-12', end: '2026-12' }, concesion: { start: '2027-02', end: '2027-02' }, categoria: 'human' },
       { acronimo: 'ERC2026', nombre: 'Europa Excelencia', solicitud: { start: '2026-05-12', end: '2026-06-02' }, prp: { start: '2026-10', end: '2026-10' }, concesion: { start: '2026-12', end: '2026-12' }, categoria: 'research' },
-      { acronimo: 'CR32026', nombre: 'Certificado R3', solicitud: { start: '2026-05-19', end: '2026-06-09' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-03', end: '2027-03' }, categoria: 'coordination' },
+      { acronimo: 'CR32026', nombre: 'Certificado R3', solicitud: { start: '2026-05-19', end: '2026-06-09' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-03', end: '2027-03' }, categoria: 'human' },
       { acronimo: 'CEX2026', nombre: 'Severo Ochoa/Maeztu', solicitud: { start: '2026-05-27', end: '2026-06-17' }, prp: { start: '2027-03', end: '2027-03' }, concesion: { start: '2027-05', end: '2027-05' }, categoria: 'coordination' },
-      { acronimo: 'RED2026', nombre: 'Redes Investigación', solicitud: { start: '2026-06-10', end: '2026-07-01' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-05', end: '2027-05' }, categoria: 'research' },
+      { acronimo: 'RED2026', nombre: 'Redes Investigación', solicitud: { start: '2026-06-10', end: '2026-07-01' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-05', end: '2027-05' }, categoria: 'coordination' },
       { acronimo: 'PCI2026-2', nombre: 'Colaboración Inter. 2', solicitud: { start: '2026-10-05', end: '2026-10-19' }, prp: { start: '2026-11', end: '2026-11' }, concesion: { start: '2026-12', end: '2026-12' }, categoria: 'research' },
       { acronimo: 'PTA2026', nombre: 'Personal Técnico I+D', solicitud: { start: '2026-10-08', end: '2026-10-29' }, prp: { start: '2027-05', end: '2027-05' }, concesion: { start: '2027-09', end: '2027-09' }, categoria: 'human' },
       { acronimo: 'PTR2026', nombre: 'Plataformas Tecnol.', solicitud: { start: '2026-10-20', end: '2026-11-10' }, prp: { start: '2027-04', end: '2027-04' }, concesion: { start: '2027-06', end: '2027-06' }, categoria: 'coordination' },
@@ -567,7 +573,6 @@
       const labelsHtml = filteredConvocatorias.map((c, idx) => `
         <div class="gantt-row-label" style="--index: ${idx}">
           <div class="gantt-row-label-name">${c.acronimo}</div>
-          <div class="gantt-row-label-category">${getCategoryLabel(c.categoria)}</div>
         </div>
       `).join('');
 
