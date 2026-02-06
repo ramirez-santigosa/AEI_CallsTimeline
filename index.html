@@ -355,10 +355,14 @@
         padding: 8px !important;
       }
 
+      header .flex.mb-4 {
+        margin-bottom: 6px !important;
+      }
+
       #main-title {
         font-size: 0.875rem !important; /* 14px */
         line-height: 1.2 !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 0 !important;
       }
 
       .stats-grid {
@@ -396,6 +400,10 @@
     @media (max-width: 480px) {
       header {
         padding: 6px !important;
+      }
+
+      header .flex.mb-4 {
+        margin-bottom: 4px !important;
       }
 
       #main-title {
@@ -829,7 +837,6 @@
 
     function updateUI(config) {
       document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
-      document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
 
       const fontFamily = config.font_family || defaultConfig.font_family;
       document.querySelectorAll('*').forEach(el => {
