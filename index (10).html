@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagrama Gantt AEI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+      background: #ffffff !important;
+    }
+    * {
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    html, body, #app {
+      height: 100%;
+      width: 100%;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: #f0f4f8;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .gantt-wrapper {
+      position: relative;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      height: 700px;
+      resize: both;
+      min-height: 400px;
+      min-width: 600px;
+    }
+
+    .gantt-header-row {
+      display: flex;
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+      height: 70px;
+      flex-shrink: 0;
+    }
+
+    .gantt-header-labels {
+      width: 140px;
+      border-right: 2px solid #e2e8f0;
+      background: white;
+    }
+
+    .gantt-header-timeline {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .gantt-header-content {
+      display: flex;
+      height: 100%;
+    }
+
+    .month-header {
+      width: 75px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      text-align: center;
+      line-height: 1.3;
+      border-right: 1px solid #e2e8f0;
+      flex-shrink: 0;
+      background: #dce4f0;
+    }
+
+    .gantt-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .gantt-labels {
+      width: 140px;
+      border-right: 2px solid #e2e8f0;
+      overflow-y: auto;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .gantt-content {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: auto;
+      background: white;
+      position: relative;
+    }
+
+    .vertical-shadow {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 45px;
+      background: rgba(150, 150, 150, 0.12);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .gantt-rows {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gantt-row {
+      height: 60px;
+      border-bottom: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .gantt-row-label {
+      width: 140px;
+      height: 60px;
+      padding: 12px 16px;
+      border-right: 2px solid #e2e8f0;
+      background: #dce4f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .gantt-row-label-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .gantt-row-label-category {
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 500;
+      display: inline-block;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+
+    .gantt-row-content {
+      position: relative;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .gantt-row-content.alt {
+      background: #f8fafc;
+    }
+
+    .timeline-bar {
+      position: absolute;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-transform: uppercase;
+    }
+
+    .timeline-bar:hover {
+      transform: scaleY(1.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+
+    .timeline-bar.solicitud {
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    }
+
+    .timeline-bar.prp {
+      background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    }
+
+    .timeline-bar.concesion {
+      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .phase-bg {
+      position: absolute;
+      height: 36px;
+      opacity: 0.35;
+      border-radius: 6px;
+      z-index: 0;
+    }
+
+    .phase-bg.eval {
+      background: rgba(126, 34, 206, 0.35);
+    }
+
+    .phase-bg.resolution {
+      background: #10b981;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #475569;
+      width: 100%;
+    }
+
+    .filter-btn:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+      border-color: #f97316;
+      color: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: #dce4f0;
+      border: 2px solid #a5b4fc;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-box:hover {
+      border-color: #818cf8;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 15px;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 0;
+      color: #475569;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .gantt-row {
+      animation: slideIn 0.3s ease forwards;
+      opacity: 0;
+    }
+
+    .gantt-row:nth-child(n) { animation-delay: calc(var(--index, 0) * 0.03s); }
+
+    .gantt-row-label {
+      animation: slideIn 0.3s ease forwards;
+      opacity: 0;
+    }
+  </style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto scrollbar-thin" style="background: white;">
+   <header class="sticky top-0 z-30 bg-white border-b-2 border-slate-200 px-6 py-6 shadow-sm">
+    <div class="max-w-full">
+     <div class="flex items-start gap-6 mb-4">
+      <div style="width: 280px; height: 128px; flex-shrink: 0;">
+       <img src="https://www.aei.gob.es/sites/default/files/inline-files/logo%20AEI.svg" 
+            alt="Logo AEI" 
+            class="h-full w-full object-contain">
+      </div>
+      <div class="flex flex-col justify-center" style="height: 128px;">
+       <h1 id="main-title" class="text-2xl font-bold text-black" style="font-family: 'Arial', sans-serif; letter-spacing: -0.02em;">Calendario previsto de las convocatorias de la Agencia Estatal de Investigación</h1>
+       <p id="subtitle" class="text-lg text-slate-700 mt-2 font-semibold">Visor 2026 - 2027</p>
+      </div>
+     </div>
+     <div class="stats-grid">
+      <div class="stat-box">
+       <div>
+        <div class="stat-number text-blue-500" id="total-count">29</div>
+        <div class="stat-label">Todas las convocatorias</div>
+       </div>
+       <button class="filter-btn active" data-filter="all">Ver todas</button>
+      </div>
+      <div class="stat-box">
+       <div>
+        <div class="stat-number text-blue-500" id="projects-count">9</div>
+        <div class="stat-label">Proyectos</div>
+       </div>
+       <button class="filter-btn" data-filter="research">Ver filtro</button>
+      </div>
+      <div class="stat-box">
+       <div>
+        <div class="stat-number text-blue-500" id="human-count">9</div>
+        <div class="stat-label">Recursos Humanos</div>
+       </div>
+       <button class="filter-btn" data-filter="human">Ver filtro</button>
+      </div>
+      <div class="stat-box">
+       <div>
+        <div class="stat-number text-blue-500" id="coord-count">7</div>
+        <div class="stat-label">Fortalecimiento y Coordinación</div>
+       </div>
+       <button class="filter-btn" data-filter="coordination">Ver filtro</button>
+      </div>
+     </div>
+    </div>
+   </header>
+   <main class="max-w-full mx-auto px-6 py-6">
+    <div class="gantt-wrapper">
+     <div class="gantt-header-row">
+      <div class="gantt-header-labels"></div>
+      <div class="gantt-header-timeline" id="header-scroll">
+       <div class="gantt-header-content" id="header-content"></div>
+      </div>
+     </div>
+     <div class="gantt-body">
+      <div class="gantt-labels" id="labels-scroll">
+       <div id="labels-content"></div>
+      </div>
+      <div class="gantt-content" id="content-scroll">
+       <div class="gantt-rows" id="content-rows"></div>
+      </div>
+     </div>
+    </div>
+    <div class="mt-8 p-4 rounded-xl bg-slate-50 border-2 border-slate-200">
+     <p class="text-xs text-slate-600">💡 <strong>Cómo leer este diagrama:</strong> Cada fila es una convocatoria. Las barras muestran cuándo se abre (naranja), se evalúa (púrpura) y cuándo se concede (verde). <strong>Las barras que se solapan horizontalmente = convocatorias simultáneas = carga de trabajo acumulada</strong></p>
+    </div>
+   </main>
+  </div>
+  <script>
+    const defaultConfig = {
+      main_title: 'Calendario previsto de las convocatorias de la Agencia Estatal de Investigación',
+      subtitle: 'Visor 2026 - 2027',
+      font_family: 'Poppins',
+      font_size: 14
+    };
+
+    const convocatorias = [
+      { acronimo: 'ATR2025', nombre: 'Programa ATRAE', solicitud: { start: '2025-04', end: '2025-04' }, prp: { start: '2026-01', end: '2026-01' }, concesion: { start: '2026-03', end: '2026-03' }, categoria: 'human' },
+      { acronimo: 'CR3-2025', nombre: 'Certificado R3', solicitud: { start: '2025-05', end: '2025-05' }, prp: { start: '2026-02', end: '2026-02' }, concesion: { start: '2026-03', end: '2026-03' }, categoria: 'coordination' },
+      { acronimo: 'CEX2025', nombre: 'Severo Ochoa/Maeztu', solicitud: { start: '2025-05', end: '2025-05' }, prp: { start: '2026-03', end: '2026-03' }, concesion: { start: '2026-06', end: '2026-06' }, categoria: 'coordination' },
+      { acronimo: 'PDC2025', nombre: 'Prueba de Concepto', solicitud: { start: '2025-06', end: '2025-06' }, prp: { start: '2025-12', end: '2025-12' }, concesion: { start: '2026-02', end: '2026-02' }, categoria: 'research' },
+      { acronimo: 'CNS2025', nombre: 'Consolidación Invest.', solicitud: { start: '2025-06', end: '2025-06' }, prp: { start: '2026-02', end: '2026-02' }, concesion: { start: '2026-04', end: '2026-04' }, categoria: 'human' },
+      { acronimo: 'EQC2025', nombre: 'Equipamiento Científ.', solicitud: { start: '2025-09-30', end: '2025-10-21' }, prp: { start: '2026-03', end: '2026-03' }, concesion: { start: '2026-05', end: '2026-05' }, categoria: 'coordination' },
+      { acronimo: 'PTA2025', nombre: 'Personal Técnico I+D', solicitud: { start: '2025-10-08', end: '2025-10-29' }, prp: { start: '2026-05', end: '2026-05' }, concesion: { start: '2026-09', end: '2026-09' }, categoria: 'human' },
+      { acronimo: 'PID2025', nombre: 'Generación Conocimiento', solicitud: { start: '2025-11-20', end: '2025-12-16' }, prp: { start: '2026-07', end: '2026-07' }, concesion: { start: '2026-11', end: '2026-11' }, categoria: 'research' },
+      { acronimo: 'RYC2025', nombre: 'Ramón y Cajal', solicitud: { start: '2025-11-19', end: '2025-12-11' }, prp: { start: '2026-06', end: '2026-06' }, concesion: { start: '2026-11', end: '2026-11' }, categoria: 'human' },
+      { acronimo: 'JDC2025', nombre: 'Juan de la Cierva', solicitud: { start: '2025-11-25', end: '2025-12-17' }, prp: { start: '2026-06', end: '2026-06' }, concesion: { start: '2026-11', end: '2026-11' }, categoria: 'human' },
+      { acronimo: 'PTQ2025', nombre: 'Torres Quevedo', solicitud: { start: '2025-11-27', end: '2025-12-18' }, prp: { start: '2026-06', end: '2026-06' }, concesion: { start: '2026-10', end: '2026-10' }, categoria: 'human' },
+      { acronimo: 'CPP2025', nombre: 'Público-Privada', solicitud: { start: '2026-01-09', end: '2026-01-30' }, prp: { start: '2026-07', end: '2026-07' }, concesion: { start: '2026-11', end: '2026-11' }, categoria: 'research' },
+      { acronimo: 'DIN2025', nombre: 'Doctorados Indust.', solicitud: { start: '2026-01-13', end: '2026-02-17' }, prp: { start: '2026-07', end: '2026-07' }, concesion: { start: '2026-10', end: '2026-10' }, categoria: 'human' },
+      { acronimo: 'GPE2026', nombre: 'Proyectos Europeos', solicitud: { start: '2026-03-05', end: '2026-03-26' }, prp: { start: '2026-09', end: '2026-09' }, concesion: { start: '2026-11', end: '2026-11' }, categoria: 'coordination' },
+      { acronimo: 'PCI2026-1', nombre: 'Colaboración Inter. 1', solicitud: { start: '2026-04-08', end: '2026-04-22' }, prp: { start: '2026-06', end: '2026-06' }, concesion: { start: '2026-07', end: '2026-07' }, categoria: 'research' },
+      { acronimo: 'ATR2026', nombre: 'Programa ATRAE', solicitud: { start: '2026-04-23', end: '2026-06-04' }, prp: { start: '2026-12', end: '2026-12' }, concesion: { start: '2027-02', end: '2027-02' }, categoria: 'human' },
+      { acronimo: 'ERC2026', nombre: 'Europa Excelencia', solicitud: { start: '2026-05-12', end: '2026-06-02' }, prp: { start: '2026-10', end: '2026-10' }, concesion: { start: '2026-12', end: '2026-12' }, categoria: 'research' },
+      { acronimo: 'CR32026', nombre: 'Certificado R3', solicitud: { start: '2026-05-19', end: '2026-06-09' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-03', end: '2027-03' }, categoria: 'coordination' },
+      { acronimo: 'CEX2026', nombre: 'Severo Ochoa/Maeztu', solicitud: { start: '2026-05-27', end: '2026-06-17' }, prp: { start: '2027-03', end: '2027-03' }, concesion: { start: '2027-05', end: '2027-05' }, categoria: 'coordination' },
+      { acronimo: 'RED2026', nombre: 'Redes Investigación', solicitud: { start: '2026-06-10', end: '2026-07-01' }, prp: { start: '2027-02', end: '2027-02' }, concesion: { start: '2027-05', end: '2027-05' }, categoria: 'research' },
+      { acronimo: 'PCI2026-2', nombre: 'Colaboración Inter. 2', solicitud: { start: '2026-10-05', end: '2026-10-19' }, prp: { start: '2026-11', end: '2026-11' }, concesion: { start: '2026-12', end: '2026-12' }, categoria: 'research' },
+      { acronimo: 'PTA2026', nombre: 'Personal Técnico I+D', solicitud: { start: '2026-10-08', end: '2026-10-29' }, prp: { start: '2027-05', end: '2027-05' }, concesion: { start: '2027-09', end: '2027-09' }, categoria: 'human' },
+      { acronimo: 'PTR2026', nombre: 'Plataformas Tecnol.', solicitud: { start: '2026-10-20', end: '2026-11-10' }, prp: { start: '2027-04', end: '2027-04' }, concesion: { start: '2027-06', end: '2027-06' }, categoria: 'coordination' },
+      { acronimo: 'PID2026', nombre: 'Generación Conocimiento', solicitud: { start: '2026-11-03', end: '2026-11-24' }, prp: { start: '2027-07', end: '2027-07' }, concesion: { start: '2027-11', end: '2027-11' }, categoria: 'research' },
+      { acronimo: 'PTQ2026', nombre: 'Torres Quevedo', solicitud: { start: '2026-11-05', end: '2026-11-26' }, prp: { start: '2027-06', end: '2027-06' }, concesion: { start: '2027-10', end: '2027-10' }, categoria: 'human' },
+      { acronimo: 'RYC2026', nombre: 'Ramón y Cajal', solicitud: { start: '2026-11-10', end: '2026-12-10' }, prp: { start: '2027-07', end: '2027-07' }, concesion: { start: '2027-12', end: '2027-12' }, categoria: 'human' },
+      { acronimo: 'JDC2026', nombre: 'Juan de la Cierva', solicitud: { start: '2026-11-12', end: '2026-12-03' }, prp: { start: '2027-06', end: '2027-06' }, concesion: { start: '2027-11', end: '2027-11' }, categoria: 'human' },
+      { acronimo: 'CPP2026', nombre: 'Público-Privada', solicitud: { start: '2027-01-12', end: '2027-02-02' }, prp: { start: '2027-07', end: '2027-07' }, concesion: { start: '2027-11', end: '2027-11' }, categoria: 'research' },
+      { acronimo: 'DIN2026', nombre: 'Doctorados Indust.', solicitud: { start: '2027-01-13', end: '2027-02-04' }, prp: { start: '2027-07', end: '2027-07' }, concesion: { start: '2027-10', end: '2027-10' }, categoria: 'human' }
+    ];
+
+    let currentFilter = 'all';
+    let filteredConvocatorias = [...convocatorias];
+
+    function getCategoryLabel(categoria) {
+      switch(categoria) {
+        case 'research': return 'Proyectos';
+        case 'human': return 'RRHH';
+        case 'coordination': return 'Coord.';
+        default: return 'General';
+      }
+    }
+
+    function getMonthsInRange() {
+      const months = [];
+      for (let year = 2026; year <= 2027; year++) {
+        for (let month = 0; month < 12; month++) {
+          months.push(new Date(year, month, 1));
+        }
+      }
+      return months;
+    }
+
+    function getBarPosition(dateRange, allMonths, monthWidth) {
+      // Convertir fechas en formato YYYY-MM a YYYY-MM-01 para procesamiento
+      let startStr = dateRange.start;
+      let endStr = dateRange.end;
+      
+      const startHasDay = startStr.split('-').length === 3;
+      const endHasDay = endStr.split('-').length === 3;
+      
+      // Si no tiene día, añadir -01 para crear fecha válida
+      if (!startHasDay) startStr += '-01';
+      if (!endHasDay) endStr += '-01';
+      
+      const startDate = new Date(startStr);
+      const endDate = new Date(endStr);
+      
+      let startMonthIdx = -1, endMonthIdx = -1;
+      let startOffset = 0, endOffset = 0;
+      
+      // Encontrar el mes de inicio y calcular offset
+      for (let i = 0; i < allMonths.length; i++) {
+        const monthYear = allMonths[i];
+        const monthStart = new Date(monthYear.getFullYear(), monthYear.getMonth(), 1);
+        const monthEnd = new Date(monthYear.getFullYear(), monthYear.getMonth() + 1, 0);
+        
+        if (startMonthIdx === -1 && startDate >= monthStart && startDate <= monthEnd) {
+          startMonthIdx = i;
+          // Si se especificó día (y no es día 1), calcular posición proporcional
+          if (startHasDay && startDate.getDate() !== 1) {
+            const daysInMonth = monthEnd.getDate();
+            const dayOfMonth = startDate.getDate();
+            startOffset = ((dayOfMonth - 1) / daysInMonth) * monthWidth;
+          }
+          // Si no se especificó día o es día 1, empezar desde el inicio del mes (offset = 0)
+        }
+        
+        if (endDate >= monthStart && endDate <= monthEnd) {
+          endMonthIdx = i;
+          // Si se especificó día completo, calcular posición proporcional
+          if (endHasDay) {
+            const daysInMonth = monthEnd.getDate();
+            const dayOfMonth = endDate.getDate();
+            endOffset = (dayOfMonth / daysInMonth) * monthWidth;
+          } else {
+            // Si no se especificó día, terminar al final del mes
+            endOffset = monthWidth;
+          }
+        }
+      }
+      
+      // Si no encontramos índices válidos, buscar el mes más cercano
+      if (startMonthIdx === -1) {
+        for (let i = 0; i < allMonths.length; i++) {
+          const monthStart = new Date(allMonths[i].getFullYear(), allMonths[i].getMonth(), 1);
+          if (startDate < monthStart) {
+            startMonthIdx = Math.max(0, i - 1);
+            break;
+          }
+        }
+        if (startMonthIdx === -1) startMonthIdx = allMonths.length - 1;
+      }
+      
+      if (endMonthIdx === -1) {
+        for (let i = 0; i < allMonths.length; i++) {
+          const monthStart = new Date(allMonths[i].getFullYear(), allMonths[i].getMonth(), 1);
+          if (endDate < monthStart) {
+            endMonthIdx = Math.max(0, i - 1);
+            break;
+          }
+        }
+        if (endMonthIdx === -1) endMonthIdx = allMonths.length - 1;
+      }
+      
+      const startPixel = startMonthIdx * monthWidth + startOffset;
+      const endPixel = endMonthIdx * monthWidth + endOffset;
+      const width = Math.max(monthWidth * 0.2, endPixel - startPixel); // Mínimo 20% del ancho de un mes
+      
+      return { 
+        startIdx: startMonthIdx, 
+        endIdx: endMonthIdx, 
+        span: Math.max(1, endMonthIdx - startMonthIdx + 1),
+        startPixel: startPixel,
+        width: width
+      };
+    }
+
+    function renderTimeline(config) {
+      const allMonths = getMonthsInRange();
+      const monthWidth = 75;
+
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const headerHtml = allMonths.map((month, idx) => {
+        const label = monthNames[month.getMonth()];
+        const year = month.getFullYear().toString().slice(-2);
+        return `<div class="month-header">${label}${year}</div>`;
+      }).join('');
+
+      document.getElementById('header-content').innerHTML = headerHtml;
+
+      const labelsHtml = filteredConvocatorias.map((c, idx) => `
+        <div class="gantt-row-label" style="--index: ${idx}">
+          <div class="gantt-row-label-name">${c.acronimo}</div>
+          <div class="gantt-row-label-category">${getCategoryLabel(c.categoria)}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('labels-content').innerHTML = labelsHtml;
+
+      const contentHtml = filteredConvocatorias.map((c, idx) => {
+        const solicitudPos = getBarPosition(c.solicitud, allMonths, monthWidth);
+        const prpPos = getBarPosition(c.prp, allMonths, monthWidth);
+        const concesionPos = getBarPosition(c.concesion, allMonths, monthWidth);
+
+        // Verificar si la solicitud termina antes de 2026
+        const solicitudEndDate = new Date(c.solicitud.end + (c.solicitud.end.split('-').length === 2 ? '-01' : ''));
+        const showSolicitud = solicitudEndDate >= new Date('2026-01-01');
+
+        // Verificar si la PRP termina antes de 2026
+        const prpEndDate = new Date(c.prp.end + (c.prp.end.split('-').length === 2 ? '-01' : ''));
+        const showPrp = prpEndDate >= new Date('2026-01-01');
+
+        const evalStart = solicitudPos.startPixel + solicitudPos.width;
+        const evalEnd = prpPos.startPixel;
+        const evalWidth = Math.max(0, evalEnd - evalStart);
+
+        const resStart = prpPos.startPixel + prpPos.width;
+        const resEnd = concesionPos.startPixel;
+        const resWidth = Math.max(0, resEnd - resStart);
+
+        const formatDate = (dateStr) => {
+          if (!dateStr) return '';
+          const parts = dateStr.split('-');
+          if (parts.length === 2) {
+            const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            return `${months[parseInt(parts[1]) - 1]}-${parts[0].slice(2)}`;
+          } else if (parts.length === 3) {
+            const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            return `${parts[2]}-${months[parseInt(parts[1]) - 1]}-${parts[0].slice(2)}`;
+          }
+          return dateStr;
+        };
+
+        const createBar = (pos, type, dateRange) => {
+          const phaseLabel = type === 'solicitud' ? 'Solicitud' : type === 'prp' ? 'PRP' : 'Concesión';
+          let tooltip = `${c.acronimo} - ${phaseLabel}`;
+          
+          if (dateRange && dateRange.start && dateRange.end) {
+            const startFormatted = formatDate(dateRange.start);
+            const endFormatted = formatDate(dateRange.end);
+            if (startFormatted === endFormatted) {
+              tooltip += `: ${startFormatted}`;
+            } else {
+              tooltip += `: ${startFormatted} → ${endFormatted}`;
+            }
+          }
+          
+          return `<div class="timeline-bar ${type}" style="left: ${pos.startPixel}px; width: ${pos.width}px; z-index: 2;" title="${tooltip}">${type === 'solicitud' ? 'SOL' : type === 'prp' ? 'PRP' : 'RC'}</div>`;
+        };
+
+        return `
+          <div class="gantt-row" style="--index: ${idx}">
+            <div class="gantt-row-content ${idx % 2 === 1 ? 'alt' : ''}">
+              ${evalWidth > 0 && showSolicitud && showPrp ? `<div class="phase-bg eval" style="left: ${evalStart}px; width: ${evalWidth}px;"></div>` : ''}
+              ${resWidth > 0 && showPrp ? `<div class="phase-bg resolution" style="left: ${resStart}px; width: ${resWidth}px;"></div>` : ''}
+              ${showSolicitud ? createBar(solicitudPos, 'solicitud', c.solicitud) : ''}
+              ${showPrp ? createBar(prpPos, 'prp', c.prp) : ''}
+              ${createBar(concesionPos, 'concesion', c.concesion)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('content-rows').innerHTML = contentHtml;
+
+      // Añadir sombras verticales
+      const contentRows = document.getElementById('content-rows');
+      const rowContents = contentRows.querySelectorAll('.gantt-row-content');
+      const totalWidth = allMonths.length * monthWidth;
+      
+      rowContents.forEach(row => {
+        row.style.width = totalWidth + 'px';
+        
+        // Crear sombras verticales para cada mes
+        let shadowsHtml = '';
+        for (let i = 0; i < allMonths.length; i++) {
+          const left = i * monthWidth + 15;
+          shadowsHtml += `<div class="vertical-shadow" style="left: ${left}px;"></div>`;
+        }
+        row.insertAdjacentHTML('afterbegin', shadowsHtml);
+      });
+
+      const contentScroll = document.getElementById('content-scroll');
+      const labelsScroll = document.getElementById('labels-scroll');
+      const headerScroll = document.getElementById('header-scroll');
+
+      contentScroll.addEventListener('scroll', () => {
+        labelsScroll.scrollTop = contentScroll.scrollTop;
+        headerScroll.scrollLeft = contentScroll.scrollLeft;
+      });
+
+      labelsScroll.addEventListener('scroll', () => {
+        contentScroll.scrollTop = labelsScroll.scrollTop;
+      });
+
+      headerScroll.addEventListener('scroll', () => {
+        contentScroll.scrollLeft = headerScroll.scrollLeft;
+      });
+    }
+
+    function updateStats() {
+      const counts = {
+        all: convocatorias.length,
+        research: convocatorias.filter(c => c.categoria === 'research').length,
+        human: convocatorias.filter(c => c.categoria === 'human').length,
+        coordination: convocatorias.filter(c => c.categoria === 'coordination').length
+      };
+
+      document.getElementById('total-count').textContent = counts.all;
+      document.getElementById('projects-count').textContent = counts.research;
+      document.getElementById('human-count').textContent = counts.human;
+      document.getElementById('coord-count').textContent = counts.coordination;
+    }
+
+    function applyFilter(filter) {
+      currentFilter = filter;
+      if (filter === 'all') {
+        filteredConvocatorias = [...convocatorias];
+      } else {
+        filteredConvocatorias = convocatorias.filter(c => c.categoria === filter);
+      }
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === filter) {
+          btn.classList.add('active');
+        }
+      });
+
+      renderTimeline(defaultConfig);
+    }
+
+    function updateUI(config) {
+      document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+      document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      document.querySelectorAll('*').forEach(el => {
+        el.style.fontFamily = `${fontFamily}, sans-serif`;
+      });
+
+      renderTimeline(config);
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyFilter(btn.dataset.filter);
+      });
+    });
+
+    updateStats();
+    updateUI(defaultConfig);
+  </script>
+ </body>
+</html>
